@@ -1,0 +1,79 @@
+-------------------------------------------------------------------------------
+Projekt TFTPv2 server do předmětu ISA v r. 2014
+-------------------------------------------------------------------------------
+
+Autor: Jan Kafka
+login: xkafka00
+
+
+Infomace k implementaci a testovani:
+-------------------------------------------------------------------------------
+
+Program splňuje zadání kromě podpory pro multicast.
+Zdrojový kód je okomentován a pokud je řešení nějakého dílčího problému částečně
+převzato odjinud, je uveden zdroj a stručný popis rozsahu převzatého řešení. Jde ale
+vždy jen o malé části kódu.
+Program se přeloží příkazem make. Překlad byl otestován na dodaném virtuálním OS.
+Výsledkem je spustitelný soubor s názvem mytftp.
+K otestování protistrany byly použity programy tftp a atftp.
+
+
+Známé chyby:
+-------------------------------------------------------------------------------
+
+Pokud více procesů vypisuje na stdout, může dojít k prokládání zpráv.
+Pokud server opakuje požadavek po vypršení timeoutu, dochází někdy k předčasnému
+ukončení.
+
+
+Parametry při spuštění:
+-------------------------------------------------------------------------------
+
+-h			nápověda
+-d <řetězec>		cesta k pracovnímu adresáři, úplná/relativní	(povinný)
+-s <celé číslo>		max. velikost datového bloku 			(nepovinný)
+-t <celé číslo>		max. čas vypršení akceptovaný od klienta 	(nepovinný)
+-a <řetězec>,<hodnota>	adresa a port služby, nebo více služeb 		(nepovinný)
+-a <řetězec>,<hodnota>#<řetězec>,<hodnota> adresy a porty více služeb	(nepovinný)
+
+
+Příklad spuštění a výstup:
+-------------------------------------------------------------------------------
+
+Jedna služba, čtení souboru cacert.crt:
+=======================================
+
+./mytftpserver -a 127.0.0.1,1300 -d /home/jan/Dokumenty/ -s 1024 -t 10
+[2014-11-28 17:02:36] Server started, ip: 127.0.0.1,1300 block: 1024B timeout: 10s
+[2014-11-28 17:03:28] 127.0.0.1 Requested READ of cacert.crt [octet]
+[2014-11-28 17:03:28] 127.0.0.1 Sending DATA
+[2014-11-28 17:03:28] 127.0.0.1 File cacert.crt has been sent [2618 B, 6 blocks]
+
+Dvě služby, čtení souboru cacert.crt nejdříve přes první službu a poté přes druhou:
+==================================================================================
+
+./mytftpserver -a 127.0.0.1,1300#::1,1400 -d /home/jan/Dokumenty/ -s 1024 -t 10
+[2014-11-28 17:11:19] Server started, ip: ::1,1400 block: 1024B timeout: 10s
+[2014-11-28 17:11:19] Server started, ip: 127.0.0.1,1300 block: 1024B timeout: 10s
+[2014-11-28 17:11:23] 127.0.0.1 Requested READ of cacert.crt [octet]
+[2014-11-28 17:11:23] 127.0.0.1 Sending DATA
+[2014-11-28 17:11:23] 127.0.0.1 File cacert.crt has been sent [2618 B, 6 blocks]
+[2014-11-28 17:12:01] ::1 Requested READ of cacert.crt [octet]
+[2014-11-28 17:12:01] ::1 Sending DATA
+[2014-11-28 17:12:01] ::1 File cacert.crt has been sent [2618 B, 6 blocks]
+
+Program se ukončuje zasláním signálu SIGINT, např. Ctrl+C.
+
+
+Zdrojové soubory:
+-------------------------------------------------------------------------------
+
+main.cpp
+libraries.h
+options.h
+options.cpp
+file.h
+file.cpp
+server.h
+server.cpp
+Makefile
